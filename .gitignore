@@ -1,0 +1,6 @@
+logs/
+build/
+
+# Ignore generated docs
+*.dox
+*.wikidoc
