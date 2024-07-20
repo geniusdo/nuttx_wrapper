@@ -1,6 +1,9 @@
 logs/
 build/
+rots/
+.vscode/
 
 # Ignore generated docs
 *.dox
 *.wikidoc
+
