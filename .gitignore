@@ -2,6 +2,7 @@ logs/
 build/
 rots/
 .vscode/
+boards/
 
 # Ignore generated docs
 *.dox

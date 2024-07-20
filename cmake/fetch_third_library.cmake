@@ -41,3 +41,5 @@ if(NOT EXISTS ${NUTTX_APP_SOURCE_DIR}/LICENSE)
 else()
   message(STATUS "${BOLD_YELLOW}Using existing nuttx-apps from ${NUTTX_APP_SOURCE_DIR}${END}")
 endif()
+
+
