@@ -1,16 +1,38 @@
+
 cmake_minimum_required(VERSION 3.17)
-project(prototype)
-
-
-
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(misc)
+include(toolchain)
+project(prototype)
+enable_language(ASM)
+enable_language(C)
+enable_language(CXX)
+
+
+
+
+# include(toolchain)
 include(fetch_third_library)
+
+
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+
+set(CMAKE_SKIP_RPATH ON)
+set(BUILD_SHARED_LIBS OFF)
+
 
 set(NUTTX_BOARD "prototype" CACHE STRING "" FORCE)
 set(NUTTX_BOARD_CONFIG "nsh" CACHE STRING "" FORCE)
 set(NUTTX_BOARD_PATH "${CMAKE_SOURCE_DIR}/boards" CACHE STRING "" FORCE)
 message(STATUS "${BOLD_GREEN}Selecting board config ${NUTTX_BOARD}:${NUTTX_BOARD_CONFIG}${END}")
+
+set(MCU_LINKER_SCRIPT "${NUTTX_BOARD_PATH}/${NUTTX_BOARD}/scripts/flash.ld" CACHE STRING "" FORCE)
+include(stm32h7)
+include(common_flags)
+
 
 
 include(config_nuttx)
@@ -26,7 +48,6 @@ include_directories(
 
 
 
-
 #-------------------------------------------------------------------------
 # modules and libraries
 #-------------------------------------------------------------------------
@@ -36,6 +57,7 @@ file(RELATIVE_PATH board_src_rel ${CMAKE_SOURCE_DIR} ${NUTTX_BOARD_PATH}/${NUTTX
 if(EXISTS ${NUTTX_BOARD_PATH}/${NUTTX_BOARD}/include)
   include_directories(${NUTTX_BOARD_PATH}/${NUTTX_BOARD}/include)
 endif()
+
 list(APPEND config_module_list ${board_src_rel}/src)
 
 # Add all modules
@@ -47,6 +69,11 @@ endforeach()
 # add_subdirectory(rtos ${CMAKE_BINARY_DIR}/nuttx)
 set(NUTTX_LIBS)
 list(APPEND NUTTX_LIBS nuttx_sched nuttx_drivers nuttx_boards nuttx_c nuttx_mm nuttx_arch nuttx_xx nuttx_apps nuttx_fs nuttx_binfmt)
+
+# include(toolchain_arm_none_eabi)
+
+
+
 
 
 set(EXE_NAME ${PROJECT_NAME})
@@ -60,7 +87,7 @@ target_link_libraries(${EXE_NAME}
   -fno-exceptions
   -fno-rtti
   -Wl,--print-memory-usage
-#   -Wl,--script=${MCU_LINKER_SCRIPT}
+  -Wl,--script=${MCU_LINKER_SCRIPT}
   -Wl,-Map=${EXE_NAME}.map
   -Wl,--output=${EXE_NAME}.elf
   -Wl,--warn-common
