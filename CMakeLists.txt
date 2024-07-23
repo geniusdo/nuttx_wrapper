@@ -8,12 +8,7 @@ enable_language(ASM)
 enable_language(C)
 enable_language(CXX)
 
-
-
-
-# include(toolchain)
 include(fetch_third_library)
-
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -33,8 +28,6 @@ set(MCU_LINKER_SCRIPT "${NUTTX_BOARD_PATH}/${NUTTX_BOARD}/scripts/flash.ld" CACH
 include(stm32h7)
 include(common_flags)
 
-
-
 include(config_nuttx)
 # Nuttx
 include_directories(
@@ -45,8 +38,6 @@ include_directories(
   ${NUTTX_SOURCE_DIR}/arch/arm/src/common
   ${NUTTX_APP_SOURCE_DIR}/include
 )
-
-
 
 #-------------------------------------------------------------------------
 # modules and libraries
@@ -66,15 +57,8 @@ foreach(module ${config_module_list})
 endforeach()
 
 # Build and config Nuttx and Nuttx Apps
-# add_subdirectory(rtos ${CMAKE_BINARY_DIR}/nuttx)
 set(NUTTX_LIBS)
 list(APPEND NUTTX_LIBS nuttx_sched nuttx_drivers nuttx_boards nuttx_c nuttx_mm nuttx_arch nuttx_xx nuttx_apps nuttx_fs nuttx_binfmt)
-
-# include(toolchain_arm_none_eabi)
-
-
-
-
 
 set(EXE_NAME ${PROJECT_NAME})
 add_executable(${EXE_NAME} empty.cc)
