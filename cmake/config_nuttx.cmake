@@ -32,27 +32,20 @@ add_custom_target(nuttx_context
  DEPENDS ${NUTTX_SOURCE_DIR}/include/nuttx/config.h)
 
 
-#-------------------------------------------------------
-# ROMFS
-#-------------------------------------------------------
-set(romfs_src_dir ${NUTTX_BOARD_PATH}/${NUTTX_BOARD}/ROMFS)
-file(GLOB_RECURSE romfs_files ${romfs_src_dir}/*)
-# create romfs.img
-find_program(GENROMFS genromfs)
-if(NOT GENROMFS)
-  message(FATAL_ERROR "genromfs not found")
-endif()
-
-add_custom_command(
-  OUTPUT
-    romfs.img
-    romfs.txt
-  COMMAND ${CMAKE_COMMAND} -E remove -f romfs.img romfs.txt
-  COMMAND ${GENROMFS} -f romfs.img -d ${romfs_src_dir} -V "NSHInitVol" -v > romfs.txt 2>&1
-  COMMENT "ROMFS: generating image."
-  DEPENDS ${romfs_files}
+# #-------------------------------------------------------
+# # ROMFS
+# #-------------------------------------------------------
+add_custom_command( 
+  OUTPUT  rc.sysinit
+  OUTPUT  rcS
+  COMMAND ${CMAKE_COMMAND} -E copy ${NUTTX_BOARD_PATH}/${NUTTX_BOARD}/src/etc/init.d/rc.sysinit ${CMAKE_BINARY_DIR}/rc.sysinit
+  COMMAND ${CMAKE_COMMAND} -E copy ${NUTTX_BOARD_PATH}/${NUTTX_BOARD}/src/etc/init.d/rcS ${CMAKE_BINARY_DIR}/rcS
+  COMMENT "ROMFS: copy sysinit file."
+  DEPENDS ${NUTTX_BOARD_PATH}/${NUTTX_BOARD}/src/etc/init.d/rc.sysinit
+  DEPENDS ${NUTTX_BOARD_PATH}/${NUTTX_BOARD}/src/etc/init.d/rcS
 )
-# create nsh_romfsimg.h
+
+# create etc_romfs.c
 find_program(XXD xxd)
 if(NOT XXD)
   message(FATAL_ERROR "xxd not found")
@@ -64,12 +57,19 @@ if(NOT SED)
 endif()
 
 add_custom_command(
-  OUTPUT ${NUTTX_BOARD_PATH}/${NUTTX_BOARD}/include/nsh_romfsimg.h
-  COMMAND ${CMAKE_COMMAND} -E remove -f ${NUTTX_BOARD_PATH}/${NUTTX_BOARD}/include/nsh_romfsimg.h
-  COMMAND ${XXD} -i romfs.img nsh_romfsimg.h
-  COMMAND ${SED} 's/unsigned/const unsigned/g' nsh_romfsimg.h > nsh_romfsimg.h.tmp && ${CMAKE_COMMAND} -E rename nsh_romfsimg.h.tmp  ${NUTTX_BOARD_PATH}/${NUTTX_BOARD}/include/nsh_romfsimg.h
-  DEPENDS romfs.img
-  COMMENT "ROMFS: generating nsh_romfsimg.h."
+    OUTPUT etc_romfs.c
+    COMMAND /bin/bash ${NUTTX_SOURCE_DIR}/tools/mkromfsimg.sh ${NUTTX_SOURCE_DIR} rc.sysinit rcS
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    COMMENT "ROMFS: generating etc_romfs.c"
+    DEPENDS rc.sysinit
+    DEPENDS rcS
+)
+
+add_custom_command(
+  OUTPUT  ${NUTTX_BOARD_PATH}/${NUTTX_BOARD}/src/etc_romfs.c
+  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/etc_romfs.c ${NUTTX_BOARD_PATH}/${NUTTX_BOARD}/src/etc_romfs.c
+  COMMENT "ROMFS: etc_romfs.c."
+  DEPENDS ${CMAKE_BINARY_DIR}/etc_romfs.c
 )
 
 #-------------------------------------------------------
@@ -93,7 +93,7 @@ add_custom_command(
     ${nuttx_apps_files}
     nuttx_context
     ${NUTTX_SOURCE_DIR}/include/nuttx/config.h
-    ${NUTTX_BOARD_PATH}/${NUTTX_BOARD}/include/nsh_romfsimg.h
+    ${NUTTX_BOARD_PATH}/${NUTTX_BOARD}/src/etc_romfs.c
   WORKING_DIRECTORY ${NUTTX_APP_SOURCE_DIR}
 )
 
