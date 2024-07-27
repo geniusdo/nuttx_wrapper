@@ -19,9 +19,12 @@ set(BUILD_SHARED_LIBS OFF)
 #-------------------------------------------------------------------------
 # Macros
 #-------------------------------------------------------------------------
-
-set(NUTTX_BOARD "prototype" CACHE STRING "" FORCE)
-set(NUTTX_BOARD_CONFIG "nsh" CACHE STRING "" FORCE)
+if(NOT DEFINED NUTTX_BOARD)
+  set(NUTTX_BOARD "prototype" CACHE STRING "" FORCE)
+endif()
+if(NOT DEFINED NUTTX_BOARD_CONFIG)
+  set(NUTTX_BOARD_CONFIG "nsh" CACHE STRING "" FORCE)
+endif()
 set(NUTTX_BOARD_PATH "${CMAKE_SOURCE_DIR}/boards" CACHE STRING "" FORCE)
 message(STATUS "${BOLD_GREEN}Selecting board config ${NUTTX_BOARD}:${NUTTX_BOARD_CONFIG}${END}")
 
