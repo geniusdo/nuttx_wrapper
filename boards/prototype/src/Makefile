@@ -32,6 +32,10 @@ ifeq ($(CONFIG_STM32H7_OTGFS),y)
 CSRCS += stm32_usb.c
 endif
 
+ifeq ($(CONFIG_USBDEV_COMPOSITES),y)
+CSRCS += stm32_composite.c
+endif
+
 ifeq ($(CONFIG_BOARDCTL),y)
 CSRCS += stm32_appinitialize.c
 endif

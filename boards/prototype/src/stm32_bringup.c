@@ -41,6 +41,10 @@
 #include "stm32_fdcan_sock.h"
 #endif
 
+#ifdef CONFIG_CDCACM
+#  include <nuttx/usb/cdcacm.h>
+#endif
+
 #include "prototype.h"
 
 /****************************************************************************
@@ -91,6 +95,19 @@ int stm32_bringup(void) {
     syslog(LOG_ERR, "ERROR: userled_lower_initialize() failed: %d\n", ret);
   }
 #endif
+
+#if defined(CONFIG_CDCACM) && !defined(CONFIG_CDCACM_CONSOLE) && \
+    !defined(CONFIG_CDCACM_COMPOSITE)
+  /* Initialize CDCACM */
+
+  syslog(LOG_INFO, "Initialize CDCACM device\n");
+
+  ret = cdcacm_initialize(0, NULL);
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "ERROR: cdcacm_initialize failed: %d\n", ret);
+    }
+#endif /* CONFIG_CDCACM & !CONFIG_CDCACM_CONSOLE */
 
 #ifdef CONFIG_RAMMTD
   /* Create a RAM MTD device if configured */
