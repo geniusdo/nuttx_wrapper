@@ -29,14 +29,25 @@ set(NUTTX_BOARD_PATH "${CMAKE_SOURCE_DIR}/boards" CACHE STRING "" FORCE)
 message(STATUS "${BOLD_GREEN}Selecting board config ${NUTTX_BOARD}:${NUTTX_BOARD_CONFIG}${END}")
 
 set(MCU_LINKER_SCRIPT "${NUTTX_BOARD_PATH}/${NUTTX_BOARD}/scripts/flash.ld" CACHE STRING "" FORCE)
+
+define_property(GLOBAL PROPERTY CUSTOM_MODULE_LIBRARIES
+  BRIEF_DOCS "module libs"
+  FULL_DOCS "List of all module libraries"
+)
+define_property(GLOBAL PROPERTY CUSTOM_MODULE_PATHS
+  BRIEF_DOCS "module paths"
+  FULL_DOCS "List of all paths for modules"
+)
+define_property(GLOBAL PROPERTY CUSTOM_SRC_FILES
+  BRIEF_DOCS "all source file for modules and libs"
+  FULL_DOCS "all source file from add_{module, library}"
+)
+
 include(stm32h7)
 include(common_flags)
-
-#-------------------------------------------------------------------------
-# Nuttx
-#-------------------------------------------------------------------------
+include(add_module)
 include(fetch_third_library)
-include(config_nuttx)
+
 include_directories(
   ${NUTTX_SOURCE_DIR}/include
   ${NUTTX_SOURCE_DIR}/include/cxx
@@ -45,9 +56,6 @@ include_directories(
   ${NUTTX_SOURCE_DIR}/arch/arm/src/common
   ${NUTTX_APP_SOURCE_DIR}/include
 )
-# Build and config Nuttx and Nuttx Apps
-set(NUTTX_LIBS)
-list(APPEND NUTTX_LIBS nuttx_sched nuttx_drivers nuttx_boards nuttx_c nuttx_mm nuttx_arch nuttx_xx nuttx_apps nuttx_fs nuttx_binfmt)
 
 #-------------------------------------------------------------------------
 # modules and libraries
@@ -60,6 +68,7 @@ if(EXISTS ${NUTTX_BOARD_PATH}/${NUTTX_BOARD}/include)
 endif()
 
 list(APPEND config_module_list ${board_src_rel}/src)
+list(APPEND config_module_list src/modules/hello_nuttx)
 
 # Add all modules
 foreach(module ${config_module_list}) 
@@ -67,11 +76,21 @@ foreach(module ${config_module_list})
 endforeach()
 
 #-------------------------------------------------------------------------
+# Nuttx
+#-------------------------------------------------------------------------
+include(config_nuttx)
+
+# Build and config Nuttx and Nuttx Apps
+set(NUTTX_LIBS)
+list(APPEND NUTTX_LIBS nuttx_sched nuttx_drivers nuttx_boards nuttx_c nuttx_mm nuttx_arch nuttx_xx nuttx_apps nuttx_fs nuttx_binfmt)
+
+#-------------------------------------------------------------------------
 # Build empty exe
 #-------------------------------------------------------------------------
 set(EXE_NAME ${PROJECT_NAME})
 add_executable(${EXE_NAME} empty.cc)
 
+get_property(module_libraries GLOBAL PROPERTY CUSTOM_MODULE_LIBRARIES)
 target_link_libraries(${EXE_NAME}
   -nostartfiles
   -nodefaultlibs
@@ -90,7 +109,7 @@ target_link_libraries(${EXE_NAME} -Wl,--start-group)
 target_link_libraries(${EXE_NAME} gcc)
 target_link_libraries(${EXE_NAME} ${NUTTX_LIBS})
 target_link_libraries(${EXE_NAME} drivers_board)
-# target_link_libraries(${EXE_NAME} ${module_libraries})
+target_link_libraries(${EXE_NAME} ${module_libraries})
 target_link_libraries(${EXE_NAME} -Wl,--end-group)
 
 

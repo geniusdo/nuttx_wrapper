@@ -32,6 +32,26 @@ add_custom_target(nuttx_context
  DEPENDS ${NUTTX_SOURCE_DIR}/include/nuttx/config.h)
 
 
+ # Get all modules and libraries
+
+set(builtin_apps_string)
+set(builtin_apps_decl_string)
+get_property(module_libraries GLOBAL PROPERTY CUSTOM_MODULE_LIBRARIES)
+list(SORT module_libraries)
+foreach(module ${module_libraries})
+  get_target_property(MAIN ${module} MAIN)
+  get_target_property(STACK_MAIN ${module} STACK_MAIN)
+  get_target_property(PRIORITY ${module} PRIORITY)
+  if(MAIN)
+    set(builtin_apps_string "${builtin_apps_string}{ \"${MAIN}\", ${PRIORITY}, ${STACK_MAIN}, ${MAIN}_main},\n")
+    set(builtin_apps_decl_string "${builtin_apps_decl_string}int ${MAIN}_main(int argc, char *argv[]);\n")
+  endif()
+endforeach()
+
+configure_file(${CMAKE_SOURCE_DIR}/cmake/app.bdat.in ${CMAKE_CURRENT_BINARY_DIR}/app.bdat)
+configure_file(${CMAKE_SOURCE_DIR}/cmake/app.pdat.in ${CMAKE_CURRENT_BINARY_DIR}/app.pdat)
+
+
 # #-------------------------------------------------------
 # # ROMFS
 # #-------------------------------------------------------
@@ -84,6 +104,8 @@ add_custom_command(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/apps/libapps.a
   COMMAND ${CMAKE_COMMAND} -E remove -f ${NUTTX_APP_SOURCE_DIR}/libapps.a ${NUTTX_APP_SOURCE_DIR}/builtin/builtin_list.h ${NUTTX_APP_SOURCE_DIR}/builtin/builtin_proto.h
   COMMAND find ${NUTTX_APP_SOURCE_DIR} -type f \\\( -name "*.o" -o -name "*lib*.a" -o -name "*.depend" -o -name "*.dep" \\\) -delete
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_BINARY_DIR}/app.bdat ${NUTTX_APP_SOURCE_DIR}/builtin/registry/app.bdat
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_BINARY_DIR}/app.pdat ${NUTTX_APP_SOURCE_DIR}/builtin/registry/app.pdat
   COMMAND ${CMAKE_COMMAND} -E touch_nocreate ${NUTTX_APP_SOURCE_DIR}/builtin/registry/.updated
   COMMAND make --no-print-directory --silent TOPDIR="${NUTTX_SOURCE_DIR}" > ${CMAKE_CURRENT_BINARY_DIR}/nuttx_apps.log
   COMMAND ${CMAKE_COMMAND} -E copy_if_different ${NUTTX_APP_SOURCE_DIR}/libapps.a ${CMAKE_CURRENT_BINARY_DIR}/apps/libapps.a
