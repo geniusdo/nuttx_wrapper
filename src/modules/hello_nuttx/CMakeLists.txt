@@ -5,4 +5,5 @@ add_module(
     hello_nuttx_main.cc
     hello_nuttx.cc
     hello_nuttx.h
+  DEPENDS nuttx_arch
 )

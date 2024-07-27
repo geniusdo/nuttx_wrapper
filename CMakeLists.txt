@@ -48,6 +48,11 @@ include(common_flags)
 include(add_module)
 include(fetch_third_library)
 
+#-------------------------------------------------------------------------
+# Nuttx
+#-------------------------------------------------------------------------
+include(config_nuttx)
+
 include_directories(
   ${NUTTX_SOURCE_DIR}/include
   ${NUTTX_SOURCE_DIR}/include/cxx
@@ -56,6 +61,10 @@ include_directories(
   ${NUTTX_SOURCE_DIR}/arch/arm/src/common
   ${NUTTX_APP_SOURCE_DIR}/include
 )
+
+# Build and config Nuttx and Nuttx Apps
+set(NUTTX_LIBS)
+list(APPEND NUTTX_LIBS nuttx_sched nuttx_drivers nuttx_boards nuttx_c nuttx_mm nuttx_arch nuttx_xx nuttx_apps nuttx_fs nuttx_binfmt)
 
 #-------------------------------------------------------------------------
 # modules and libraries
@@ -74,15 +83,6 @@ list(APPEND config_module_list src/modules/hello_nuttx)
 foreach(module ${config_module_list}) 
   add_subdirectory(${module})
 endforeach()
-
-#-------------------------------------------------------------------------
-# Nuttx
-#-------------------------------------------------------------------------
-include(config_nuttx)
-
-# Build and config Nuttx and Nuttx Apps
-set(NUTTX_LIBS)
-list(APPEND NUTTX_LIBS nuttx_sched nuttx_drivers nuttx_boards nuttx_c nuttx_mm nuttx_arch nuttx_xx nuttx_apps nuttx_fs nuttx_binfmt)
 
 #-------------------------------------------------------------------------
 # Build empty exe
