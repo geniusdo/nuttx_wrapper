@@ -36,10 +36,10 @@ add_custom_target(nuttx_context
 # # ROMFS
 # #-------------------------------------------------------
 add_custom_command( 
-  OUTPUT  rc.sysinit
-  OUTPUT  rcS
-  COMMAND ${CMAKE_COMMAND} -E copy ${NUTTX_BOARD_PATH}/${NUTTX_BOARD}/src/etc/init.d/rc.sysinit ${CMAKE_BINARY_DIR}/rc.sysinit
-  COMMAND ${CMAKE_COMMAND} -E copy ${NUTTX_BOARD_PATH}/${NUTTX_BOARD}/src/etc/init.d/rcS ${CMAKE_BINARY_DIR}/rcS
+  OUTPUT  rc.sysinit.template
+  OUTPUT  rcS.template
+  COMMAND ${CMAKE_COMMAND} -E copy ${NUTTX_BOARD_PATH}/${NUTTX_BOARD}/src/etc/init.d/rc.sysinit ${CMAKE_BINARY_DIR}/rc.sysinit.template
+  COMMAND ${CMAKE_COMMAND} -E copy ${NUTTX_BOARD_PATH}/${NUTTX_BOARD}/src/etc/init.d/rcS ${CMAKE_BINARY_DIR}/rcS.template
   COMMENT "ROMFS: copy sysinit file."
   DEPENDS ${NUTTX_BOARD_PATH}/${NUTTX_BOARD}/src/etc/init.d/rc.sysinit
   DEPENDS ${NUTTX_BOARD_PATH}/${NUTTX_BOARD}/src/etc/init.d/rcS
@@ -58,11 +58,12 @@ endif()
 
 add_custom_command(
     OUTPUT etc_romfs.c
-    COMMAND /bin/bash ${NUTTX_SOURCE_DIR}/tools/mkromfsimg.sh ${NUTTX_SOURCE_DIR} rc.sysinit rcS
+    COMMAND /bin/bash ${NUTTX_SOURCE_DIR}/tools/mkromfsimg.sh ${NUTTX_SOURCE_DIR} rc.sysinit.template rcS.template
+    COMMAND ${CMAKE_COMMAND} -E remove ${NUTTX_BOARD_PATH}/${NUTTX_BOARD}/src/etc_romfs.c
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     COMMENT "ROMFS: generating etc_romfs.c"
-    DEPENDS rc.sysinit
-    DEPENDS rcS
+    DEPENDS rc.sysinit.template
+    DEPENDS rcS.template
 )
 
 add_custom_command(
@@ -83,8 +84,6 @@ add_custom_command(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/apps/libapps.a
   COMMAND ${CMAKE_COMMAND} -E remove -f ${NUTTX_APP_SOURCE_DIR}/libapps.a ${NUTTX_APP_SOURCE_DIR}/builtin/builtin_list.h ${NUTTX_APP_SOURCE_DIR}/builtin/builtin_proto.h
   COMMAND find ${NUTTX_APP_SOURCE_DIR} -type f \\\( -name "*.o" -o -name "*lib*.a" -o -name "*.depend" -o -name "*.dep" \\\) -delete
-#   COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_BINARY_DIR}/fmu.bdat ${NUTTX_APP_SOURCE_DIR}/builtin/registry/fmu.bdat
-#   COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_BINARY_DIR}/fmu.pdat ${NUTTX_APP_SOURCE_DIR}/builtin/registry/fmu.pdat
   COMMAND ${CMAKE_COMMAND} -E touch_nocreate ${NUTTX_APP_SOURCE_DIR}/builtin/registry/.updated
   COMMAND make --no-print-directory --silent TOPDIR="${NUTTX_SOURCE_DIR}" > ${CMAKE_CURRENT_BINARY_DIR}/nuttx_apps.log
   COMMAND ${CMAKE_COMMAND} -E copy_if_different ${NUTTX_APP_SOURCE_DIR}/libapps.a ${CMAKE_CURRENT_BINARY_DIR}/apps/libapps.a
