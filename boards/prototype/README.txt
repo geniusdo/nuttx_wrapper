@@ -1,5 +1,5 @@
 Nuttx configuration for STM32H743VI
-  HSE: 25MHz
+  HSE: 16MHz
   LED:
     PA1: LED (high on)
   USB_OTG_FS:

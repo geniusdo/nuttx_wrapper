@@ -112,4 +112,17 @@ target_link_libraries(${EXE_NAME} drivers_board)
 target_link_libraries(${EXE_NAME} ${module_libraries})
 target_link_libraries(${EXE_NAME} -Wl,--end-group)
 
+set(ELF_FILE ${CMAKE_BINARY_DIR}/${EXE_NAME}.elf)
+set(BIN_FILE ${CMAKE_BINARY_DIR}/${EXE_NAME}.bin)
+set(HEX_FILE ${CMAKE_BINARY_DIR}/${EXE_NAME}.hex)
+add_custom_command(
+    OUTPUT ${BIN_FILE} ${HEX_FILE}
+    COMMAND ${CMAKE_OBJCOPY} -O binary ${ELF_FILE} ${BIN_FILE}
+    COMMAND ${CMAKE_OBJCOPY} -O ihex ${ELF_FILE} ${HEX_FILE}
+    DEPENDS ${ELF_FILE}
+    COMMENT "Converting ${EXE_NAME}.elf to ${EXE_NAME}.bin and ${EXE_NAME}.hex"
+)
 
+add_custom_target(generate_bin_hex ALL
+    DEPENDS ${BIN_FILE} ${HEX_FILE}
+)
