@@ -16,6 +16,26 @@ add_custom_command(
   WORKING_DIRECTORY ${NUTTX_SOURCE_DIR}
 )
 
+
+#-------------------------------------------------------
+# Menuconfig command
+#-------------------------------------------------------
+add_custom_target(menuconfig
+  COMMAND make menuconfig
+  WORKING_DIRECTORY ${NUTTX_SOURCE_DIR}
+  COMMENT "Launching NuttX menuconfig"
+)
+
+#-------------------------------------------------------
+# Savedefconfig command
+#-------------------------------------------------------
+add_custom_target(saveconfig
+  COMMAND make savedefconfig
+  COMMAND ${CMAKE_COMMAND} -E copy ${NUTTX_SOURCE_DIR}/defconfig ${NUTTX_BOARD_PATH}/${NUTTX_BOARD}/configs/${NUTTX_BOARD_CONFIG}/defconfig
+  COMMENT "Saving important configurations from .config to defconfig"
+  WORKING_DIRECTORY ${NUTTX_SOURCE_DIR}
+)
+
 #------------------------------------------------------------------------------------------
 # Generate config.h (.config -> include/nuttx/config.h, include/nuttx/version.h, dirlinks)
 #------------------------------------------------------------------------------------------
