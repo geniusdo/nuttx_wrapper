@@ -7,3 +7,4 @@ rtos/
 *.dox
 *.wikidoc
 
+boards/*/src/etc_romfs.c
