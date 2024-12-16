@@ -44,6 +44,10 @@ ifeq ($(CONFIG_BOARDCTL_RESET),y)
 CSRCS += stm32_reset.c
 endif
 
+ifeq ($(CONFIG_PWM),y)
+CSRCS += stm32_pwm.c
+endif
+
 ifeq ($(CONFIG_ETC_ROMFS),y)
 CSRCS += etc_romfs.c
 endif

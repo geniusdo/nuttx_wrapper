@@ -39,6 +39,7 @@
 #define HAVE_USBDEV 1
 #define HAVE_USBHOST 1
 #define HAVE_USBMONITOR 1
+#define HAVE_PWM 1
 
 /* Can't support USB host or device features if USB OTG FS is not enabled */
 
@@ -109,6 +110,9 @@
    GPIO_PIN7)
 #endif
 */
+#ifdef HAVE_PWM
+#define PWM_TIM 1
+#endif
 
 /****************************************************************************
  * Public Function Prototypes
