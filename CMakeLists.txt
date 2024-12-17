@@ -61,7 +61,6 @@ include_directories(
   ${NUTTX_SOURCE_DIR}/arch/arm/src/common
   ${NUTTX_APP_SOURCE_DIR}/include
 )
-
 # Build and config Nuttx and Nuttx Apps
 set(NUTTX_LIBS)
 list(APPEND NUTTX_LIBS nuttx_sched nuttx_drivers nuttx_boards nuttx_c nuttx_mm nuttx_arch nuttx_xx nuttx_apps nuttx_fs nuttx_binfmt)
@@ -69,6 +68,7 @@ list(APPEND NUTTX_LIBS nuttx_sched nuttx_drivers nuttx_boards nuttx_c nuttx_mm n
 #-------------------------------------------------------------------------
 # modules and libraries
 #-------------------------------------------------------------------------
+
 set(config_module_list)
 # Custom board
 file(RELATIVE_PATH board_src_rel ${CMAKE_SOURCE_DIR} ${NUTTX_BOARD_PATH}/${NUTTX_BOARD})
@@ -83,6 +83,8 @@ list(APPEND config_module_list src/modules/hello_nuttx)
 foreach(module ${config_module_list}) 
   add_subdirectory(${module})
 endforeach()
+
+include(config_app)
 
 #-------------------------------------------------------------------------
 # Build empty exe
