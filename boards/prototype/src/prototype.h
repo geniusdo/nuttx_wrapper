@@ -40,6 +40,7 @@
 #define HAVE_USBHOST 1
 #define HAVE_USBMONITOR 1
 #define HAVE_PWM 1
+#define HAVE_IMU 1
 
 /* Can't support USB host or device features if USB OTG FS is not enabled */
 
@@ -74,42 +75,14 @@
 #undef HAVE_USBMONITOR
 #endif
 
-/* LED */
+#ifdef HAVE_IMU
+#define BMI088_0_ACS GPIO_SPI1_CS1
+#define BMI088_0_GCS GPIO_SPI1_CS2
 
-#define GPIO_LD1                                                        \
-  (GPIO_OUTPUT | GPIO_PUSHPULL | GPIO_SPEED_50MHz | GPIO_OUTPUT_CLEAR | \
-   GPIO_PORTA | GPIO_PIN1)
-#define GPIO_LD2                                                        \
-  (GPIO_OUTPUT | GPIO_PUSHPULL | GPIO_SPEED_50MHz | GPIO_OUTPUT_CLEAR | \
-   GPIO_PORTE | GPIO_PIN1)
-#define GPIO_LD3                                                        \
-  (GPIO_OUTPUT | GPIO_PUSHPULL | GPIO_SPEED_50MHz | GPIO_OUTPUT_CLEAR | \
-   GPIO_PORTB | GPIO_PIN14)
-
-#define GPIO_LED_GREEN GPIO_LD1
-#define GPIO_LED_ORANGE GPIO_LD2
-#define GPIO_LED_RED GPIO_LD3
-
-// FMU-H743VI not support VBUS, PWRON and OVER
-/*
-#define GPIO_OTGFS_VBUS                                                        \
-  (GPIO_INPUT | GPIO_FLOAT | GPIO_SPEED_100MHz | GPIO_OPENDRAIN | GPIO_PORTA | \
-   GPIO_PIN9)
-
-#define GPIO_OTGFS_PWRON                                                       \
-  (GPIO_OUTPUT | GPIO_FLOAT | GPIO_SPEED_100MHz | GPIO_PUSHPULL | GPIO_PORTD | \
-   GPIO_PIN10)
-
-#ifdef CONFIG_USBHOST
-#define GPIO_OTGFS_OVER                                                      \
-  (GPIO_INPUT | GPIO_EXTI | GPIO_FLOAT | GPIO_SPEED_100MHz | GPIO_PUSHPULL | \
-   GPIO_PORTG | GPIO_PIN7)
-#else
-#define GPIO_OTGFS_OVER                                                       \
-  (GPIO_INPUT | GPIO_FLOAT | GPIO_SPEED_100MHz | GPIO_PUSHPULL | GPIO_PORTG | \
-   GPIO_PIN7)
+#define BMI088_1_ACS GPIO_SPI4_CS2
+#define BMI088_1_GCS GPIO_SPI4_CS1
 #endif
-*/
+
 #ifdef HAVE_PWM
 #define PWM_TIM 1
 #endif
@@ -159,6 +132,14 @@ void weak_function stm32_usbinitialize(void);
 
 #if defined(CONFIG_STM32H7_OTGFS) && defined(CONFIG_USBHOST)
 int stm32_usbhost_initialize(void);
+#endif
+
+#ifdef CONFIG_PWM
+int stm32_pwm_setup(void);
+#endif
+
+#ifdef CONFIG_STM32H7_SPI
+void stm32_spidev_initialize(void);
 #endif
 
 #endif /* __BOARDS_ARM_STM32H7_NUCLEO_H743ZI2_SRC_NUCLEO_H743ZI2_H */

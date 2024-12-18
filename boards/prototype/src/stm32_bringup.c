@@ -195,5 +195,6 @@ int stm32_bringup(void) {
     }
 #endif
 
+
   return OK;
 }
