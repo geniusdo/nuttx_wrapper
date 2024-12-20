@@ -63,7 +63,7 @@ include_directories(
 )
 # Build and config Nuttx and Nuttx Apps
 set(NUTTX_LIBS)
-list(APPEND NUTTX_LIBS nuttx_sched nuttx_drivers nuttx_boards nuttx_c nuttx_mm nuttx_arch nuttx_xx nuttx_apps nuttx_fs nuttx_binfmt)
+list(APPEND NUTTX_LIBS nuttx_sched nuttx_drivers nuttx_boards nuttx_m nuttx_c nuttx_mm nuttx_arch nuttx_xx nuttx_apps nuttx_fs nuttx_binfmt)
 
 #-------------------------------------------------------------------------
 # modules and libraries

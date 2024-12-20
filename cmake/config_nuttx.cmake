@@ -84,9 +84,11 @@ add_nuttx_dir(boards boards y -D__KERNEL__ all)
 add_nuttx_dir(drivers drivers y -D__KERNEL__ all)
 add_nuttx_dir(fs fs y -D__KERNEL__ all)
 add_nuttx_dir(sched sched y -D__KERNEL__ all)
+add_nuttx_dir(m libs/libm  y -D__KERNEL__ all)
 add_nuttx_dir(xx libs/libxx n "" all)
 add_nuttx_dir(crypto crypto y -D__KERNEL__ all)
 add_nuttx_dir(arch arch/arm/src y -D__KERNEL__ all)
 add_nuttx_dir(c libs/libc n "" all)
 add_nuttx_dir(mm mm n "" mm)
+
 

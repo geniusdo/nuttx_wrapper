@@ -1,9 +1,9 @@
 #include "bmi08_port.h"
 #include "bmi08x.h"
 #include <cstdio>
-#include <cmath>
 #include <sys/time.h>
 
+#include "filter/ConsistentOrientationFilter.hpp"
 static float acc_x, acc_y, acc_z;
 static float gyro_x, gyro_y, gyro_z;
 
@@ -141,9 +141,16 @@ extern "C"
 {
     int imu_main(int argc, char **argv)
     {
-
+        const float gyro_noise = 1e-5;
+        const float gyro_random_walk = 1e-5;
+        double gravity_noise = 1.0f;
+        using namespace EmbeddedMath;
+        Filter::ConsistentOrientation::ConsistentOrientationFilter consistent_filter{};
+        consistent_filter.setImuParam(Vector3f(gyro_noise, gyro_noise, gyro_noise), 400);
+        consistent_filter.setMeasurementParam(Vector3f(gravity_noise, gravity_noise, gravity_noise));
+        consistent_filter.setInitialState(Quaternionf::Identity());
+        // sqrt(1.0f);
         int8_t rslt;
-
         uint32_t times_to_read = 0;
         float x = 0.0, y = 0.0, z = 0.0;
         uint8_t status = 0;
@@ -170,9 +177,9 @@ extern "C"
                     /* Read accel data ready interrupt status */
                     rslt = bmi08a_get_data_int_status(&status, &bmi08dev);
 
-                    if ((status & BMI08_ACCEL_DATA_READY_INT) &&  (last_acce_flag == 0))
+                    if ((status & BMI08_ACCEL_DATA_READY_INT) && (last_acce_flag == 0))
                     {
-                        gettimeofday(&t,0);
+                        gettimeofday(&t, 0);
                         rslt = bmi08a_get_data(&bmi08_accel, &bmi08dev);
 
                         acc_x = static_cast<float>(bmi08_accel.x) / 1365.0f * GRAVITY_EARTH;
@@ -183,10 +190,16 @@ extern "C"
                         gyro_x = static_cast<float>(bmi08_gyro.x) / 16.384f * DEG_TO_RAD;
                         gyro_y = static_cast<float>(bmi08_gyro.y) / 16.384f * DEG_TO_RAD;
                         gyro_z = static_cast<float>(bmi08_gyro.z) / 16.384f * DEG_TO_RAD;
-                        
+
                         double current_time = static_cast<double>(t.tv_sec) + static_cast<double>(t.tv_usec) / 1000000.0;
 
-                        printf("current time %f \n acce %4.2f %4.2f %4.2f\n gyro %4.2f %4.2f %4.2f\n",current_time, acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z);
+                        Vector4f input(0.025, gyro_x, gyro_y, gyro_z);
+                        auto consistent_prediction = consistent_filter.predict(input);
+                        Vector3f acce(acc_x, acc_y, acc_z);
+                        consistent_filter.update(acce.normalized());
+
+                        // printf("current time %f \n acce %4.2f %4.2f %4.2f\n gyro %4.2f %4.2f %4.2f\n", current_time, acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z);
+                        printf("estimated quat %f %f %f %f \n", consistent_prediction.w(), consistent_prediction.x(), consistent_prediction.y(), consistent_prediction.z());
                         times_to_read++;
                     }
                     last_acce_flag = status & BMI08_ACCEL_DATA_READY_INT;

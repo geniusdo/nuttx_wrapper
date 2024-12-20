@@ -7,5 +7,8 @@ add_module(
     bmi08a.c
     bmi08g.c 
     bmi08xa.c
-  DEPENDS nuttx_arch
+  INCLUDES
+    .
+  STACK_MAIN 16384
+  DEPENDS nuttx_arch nuttx_m
 )
