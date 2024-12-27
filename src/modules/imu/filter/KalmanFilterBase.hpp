@@ -6,11 +6,13 @@
 #define FILTER_KALMANFILTERBASE_HPP_
 
 #include "EmbeddedMath.hpp"
+
 namespace Filter
 {
     using namespace EmbeddedMath;
+
     template <typename T, int N>
-    using Covariance = EmbeddedMatrix<T, N>;
+    using Covariance = Matrix<T, N, N>;
 
     /**
      * @brief Abstract base class for all Kalman Filters
@@ -21,12 +23,12 @@ namespace Filter
     class KalmanFilterBase
     {
     public:
-        // static_assert(/*StateType::RowsAtCompileTime == Dynamic ||*/ StateType::RowsAtCompileTime > 0,
-        //               "State vector must contain at least 1 element" /* or be dynamic */);
-        // static_assert(StateType::ColsAtCompileTime == 1, "State type must be a column vector");
+        static_assert(/*StateType::RowsAtCompileTime == Dynamic ||*/ StateType::RowsAtCompileTime > 0,
+                      "State vector must contain at least 1 element" /* or be dynamic */);
+        static_assert(StateType::ColsAtCompileTime == 1, "State type must be a column vector");
 
         //! Numeric scalar type
-        typedef typename StateType::ScalarType T;
+        typedef typename StateType::Scalar T;
 
         //! Type of the state vector
         typedef StateType State;

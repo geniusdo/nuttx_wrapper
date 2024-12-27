@@ -4,25 +4,22 @@
 #define FILTER_CONSISTENTORIENTATIONFILTER_HPP_
 
 #include "ErrorStateKalmanFilter.hpp"
-#include "stdio.h"
+#include "EmbeddedLie.hpp"
 namespace Filter
 {
-
     namespace ConsistentOrientation
     {
-
-        using namespace EmbeddedMath;
+        using namespace EmbeddedLie;
 
         /// @brief error vector [dq]
-        using ErrorVec = Vector3f;
+        using ErrorVec = Matrix<float, 3, 1>;
 
         using MeasurementVec = Vector3f;
 
         /// @brief input vector [dt, ang_vel]
-        using ControlVec = Vector4f;
+        using ControlVec = Matrix<float, 4, 1>;
 
         using NominalState_t = Quaternionf;
-
 
         /// @brief
         class ConsistentOrientationFilter : public ErrorStateKalmanFilter<NominalState_t, ErrorVec, MeasurementVec, ControlVec>
@@ -39,29 +36,35 @@ namespace Filter
 
             SystemJacobian updateSysJacobian(const NominalState_t &state, const ErrorVec &x, const ControlVec &u) override
             {
-                SystemJacobian F = Matrix3f::Identity();
-                F = state.toRotationMatrix() * u(0);
-                return F;
+                return Matrix3f::Identity();
+            }
+
+            MeasurementVec updateObservation(const NominalState_t &state, const ErrorVec &x) override
+            {
+                return state.toRotationMatrix().transpose() * Vector3f(0, 0, 1);
+            }
+
+            ControlJacobian updateControlJacobian(const NominalState_t &state, const ErrorVec &x, const ControlVec &u) override
+            {
+                return state.toRotationMatrix() * u(0);
             }
 
             SystemJacobian jacobianOfReset(const ErrorVec &x) override
             {
-                SystemJacobian J = Matrix3f::Identity();
-                J = Matrix3f::Identity() - 0.5 * skew(Vector3f(x.head<3>()));
-                return J;
+                //! TODO: weird here, need to check 
+                return Matrix3f::Identity();
             }
 
             NominalState_t correctNominalState(const NominalState_t &state, const ErrorVec &x) override
             {
                 NominalState_t corrected_state;
-                corrected_state = state * quat_Exp(Vector3f(x.head<3>()));
+                corrected_state = quat_Exp(Vector3f(x.head<3>())) * state;
                 corrected_state.normalize();
                 return corrected_state;
             }
 
             MeasurementJacobian updateMeasJacobian(const NominalState_t &state, const ErrorVec &x) override
             {
-
                 MeasurementJacobian H = Matrix3f::Zero();
                 Vector3f gravity_inG = Vector3f(0, 0, 1);
                 H = state.toRotationMatrix().transpose() * skew(gravity_inG);
@@ -69,22 +72,20 @@ namespace Filter
             }
 
         private:
-            double frequency = 200.0;
+            float frequency = 200.0;
 
         public:
-            using ESKF = ErrorStateKalmanFilter<NominalState_t, ErrorVec, MeasurementVec, ControlVec>;
-            ConsistentOrientationFilter() : ESKF() {}
-
             /// @brief set IMU noise and random walk
             /// @param noise unit: rad/s/sqrt(Hz)
             /// @param random_walk  unit: rad/s^2/sqrt(hr)
             /// @note recommend calibrating the IMU noise and random walk using Kalibr Allan deviation calibration
-            void setImuParam(const Vector3f &noise, const double frequency = 200.0)
+            void setImuParam(const Vector3f &noise, const float frequency = 200.0)
             {
                 this->frequency = frequency;
-                noiseCov sysNoiseCov = Matrix3f::Zero();
-                sysNoiseCov = noise.asDiagonal() * (sqrt(frequency));
-                ErrorStateKalmanFilter::setSystemNoiseCovariance(sysNoiseCov);
+                noiseCov controlNoiseCov = Matrix3f::Zero();
+                controlNoiseCov = noise.asDiagonal() * (float)(sqrt(frequency));
+                ErrorStateKalmanFilter::setSystemNoiseCovariance(noiseCov::Zero());
+                ErrorStateKalmanFilter::setControlNoiseCovariance(controlNoiseCov);
             }
 
             /// @brief set measurement noise

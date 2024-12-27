@@ -9,6 +9,7 @@ static float gyro_x, gyro_y, gyro_z;
 
 #define GRAVITY_EARTH (9.80665f)
 #define DEG_TO_RAD (M_PI / 180.0f)
+#define RAD_TO_DEG (180.0f / M_PI)
 
 /*********************************************************************/
 /*                        Global variables                           */
@@ -141,14 +142,31 @@ extern "C"
 {
     int imu_main(int argc, char **argv)
     {
+        int seconds = 10;
+        for (int i = 1; i < argc; ++i)
+        {
+            if (strcmp(argv[i], "-t") == 0 && i + 1 < argc)
+            {
+                seconds = atoi(argv[i + 1]);
+                i++;
+            }
+        }
+        if (seconds < 1)
+        {
+            printf("Invalid time value. Using default value of 10 seconds.\n");
+            seconds = 10;
+        }
+
         const float gyro_noise = 1e-5;
         const float gyro_random_walk = 1e-5;
-        double gravity_noise = 1.0f;
+        double gravity_noise = 0.01f;
         using namespace EmbeddedMath;
         Filter::ConsistentOrientation::ConsistentOrientationFilter consistent_filter{};
-        consistent_filter.setImuParam(Vector3f(gyro_noise, gyro_noise, gyro_noise), 400);
+        consistent_filter.setImuParam(Vector3f(gyro_noise, gyro_noise, gyro_noise), 400.0f);
         consistent_filter.setMeasurementParam(Vector3f(gravity_noise, gravity_noise, gravity_noise));
         consistent_filter.setInitialState(Quaternionf::Identity());
+        Vector3f gyro_bias = Vector3f::Zero();
+        int calibation_count = 400;
         // sqrt(1.0f);
         int8_t rslt;
         uint32_t times_to_read = 0;
@@ -192,20 +210,31 @@ extern "C"
                         gyro_z = static_cast<float>(bmi08_gyro.z) / 16.384f * DEG_TO_RAD;
 
                         double current_time = static_cast<double>(t.tv_sec) + static_cast<double>(t.tv_usec) / 1000000.0;
+                        if (times_to_read < calibation_count)
+                        {
+                            gyro_bias += Vector3f(gyro_x, gyro_y, gyro_z);
+                        }
+                        else
+                        {
+                            if (times_to_read == calibation_count)
+                            {
+                                gyro_bias /= static_cast<float>(calibation_count);
+                                printf("gyro bias %f %f %f \n", gyro_bias.x(), gyro_bias.y(), gyro_bias.z());
+                            }
 
-                        Vector4f input(0.025, gyro_x, gyro_y, gyro_z);
-                        auto consistent_prediction = consistent_filter.predict(input);
-                        Vector3f acce(acc_x, acc_y, acc_z);
-                        consistent_filter.update(acce.normalized());
-
-                        // printf("current time %f \n acce %4.2f %4.2f %4.2f\n gyro %4.2f %4.2f %4.2f\n", current_time, acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z);
-                        printf("estimated quat %f %f %f %f \n", consistent_prediction.w(), consistent_prediction.x(), consistent_prediction.y(), consistent_prediction.z());
+                            Vector4f input(0.0025, gyro_x - gyro_bias.x(), gyro_y - gyro_bias.y(), gyro_z - gyro_bias.z());
+                            auto consistent_prediction = consistent_filter.predict(input);
+                            Vector3f acce(acc_x, acc_y, acc_z);
+                            consistent_filter.update(acce.normalized());
+                            // printf("current time %f \n acce %4.2f %4.2f %4.2f\n gyro %4.2f %4.2f %4.2f\n", current_time, acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z);
+                            printf("%f %f %f %f \n", consistent_prediction.w(), consistent_prediction.x(), consistent_prediction.y(), consistent_prediction.z());
+                        }
                         times_to_read++;
                     }
                     last_acce_flag = status & BMI08_ACCEL_DATA_READY_INT;
                     // last_gyro_flag = status & BMI08_GYRO_DATA_READY_INT;
 
-                    if (times_to_read > 2000)
+                    if (times_to_read > seconds * 400)
                     {
                         break;
                     }
