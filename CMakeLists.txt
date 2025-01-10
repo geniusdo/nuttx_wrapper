@@ -1,6 +1,7 @@
 
 cmake_minimum_required(VERSION 3.17)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+set(CMAKE_SYSTEM_PROCESSOR risc-v)
 include(misc)
 include(toolchain)
 project(prototype)
@@ -43,7 +44,8 @@ define_property(GLOBAL PROPERTY CUSTOM_SRC_FILES
   FULL_DOCS "all source file from add_{module, library}"
 )
 
-include(stm32h7)
+
+include(esp32c6)
 include(common_flags)
 include(add_module)
 include(fetch_third_library)
@@ -56,9 +58,12 @@ include(config_nuttx)
 include_directories(
   ${NUTTX_SOURCE_DIR}/include
   ${NUTTX_SOURCE_DIR}/include/cxx
-  ${NUTTX_SOURCE_DIR}/arch/arm/src/armv7-m
-  ${NUTTX_SOURCE_DIR}/arch/arm/src/chip
-  ${NUTTX_SOURCE_DIR}/arch/arm/src/common
+  # ${NUTTX_SOURCE_DIR}/arch/arm/src/armv7-m
+  # ${NUTTX_SOURCE_DIR}/arch/arm/src/chip
+  # ${NUTTX_SOURCE_DIR}/arch/arm/src/common
+  ${NUTTX_SOURCE_DIR}/arch/risc-v/src/esp32c6
+  ${NUTTX_SOURCE_DIR}/arch/risc-v/src/common
+  ${NUTTX_SOURCE_DIR}/arch/risc-v/src/chip
   ${NUTTX_APP_SOURCE_DIR}/include
 )
 # Build and config Nuttx and Nuttx Apps
@@ -78,7 +83,7 @@ endif()
 
 list(APPEND config_module_list ${board_src_rel}/src)
 list(APPEND config_module_list src/modules/hello_nuttx)
-list(APPEND config_module_list src/modules/imu)
+# list(APPEND config_module_list src/modules/imu)
 
 # Add all modules
 foreach(module ${config_module_list}) 

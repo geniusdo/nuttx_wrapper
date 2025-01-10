@@ -1,10 +1,12 @@
 set(CMAKE_SYSTEM_NAME Generic)
-set(CMAKE_SYSTEM_PROCESSOR arm)
 
 # Toolchain
+if(CMAKE_SYSTEM_PROCESSOR STREQUAL "arm")
 set(COMPILER_PREFIX "arm-none-eabi")
-
-# find arm-none-eabi-gcc binary
+elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "risc-v")
+set(COMPILER_PREFIX "riscv-none-elf")
+endif()
+# find ${COMPILER_PREFIX}-gcc binary
 execute_process(
   COMMAND which ${COMPILER_PREFIX}-gcc
   OUTPUT_VARIABLE TOOLCHAIN_GCC_PATH
@@ -12,7 +14,7 @@ execute_process(
 )
 # extract toolchain path
 get_filename_component(TOOLCHAIN_PATH ${TOOLCHAIN_GCC_PATH} DIRECTORY)
-message(STATUS "${BOLD_GREEN}Toolchain path: ${TOOLCHAIN_PATH}${END}")
+message(STATUS "${BOLD_GREEN}Toolchain path: ${TOOLCHAIN_PATH}/${COMPILER_PREFIX}-${END}")
 
 # cmake-format: off
 find_program(CMAKE_C_COMPILER NAMES ${COMPILER_PREFIX}-gcc HINTS ${TOOLCHAIN_BIN_PATH})
@@ -34,19 +36,19 @@ set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 
 # Define the compiler to be used for C and C++
-set(CMAKE_C_COMPILER arm-none-eabi-gcc)
-set(CMAKE_CXX_COMPILER arm-none-eabi-g++)
+set(CMAKE_C_COMPILER ${COMPILER_PREFIX}-gcc)
+set(CMAKE_CXX_COMPILER ${COMPILER_PREFIX}-g++)
 
 # Define the assembler to be used
-set(CMAKE_ASM_COMPILER arm-none-eabi-as)
+set(CMAKE_ASM_COMPILER ${COMPILER_PREFIX}-as)
 
 # Define the tool for archiving libraries
-set(CMAKE_AR arm-none-eabi-ar)
-set(CMAKE_NM arm-none-eabi-nm)
-set(CMAKE_OBJCOPY arm-none-eabi-objcopy)
-set(CMAKE_OBJDUMP arm-none-eabi-objdump)
-set(CMAKE_RANLIB arm-none-eabi-ranlib)
-set(CMAKE_SIZE arm-none-eabi-size)
+set(CMAKE_AR ${COMPILER_PREFIX}-ar)
+set(CMAKE_NM ${COMPILER_PREFIX}-nm)
+set(CMAKE_OBJCOPY ${COMPILER_PREFIX}-objcopy)
+set(CMAKE_OBJDUMP ${COMPILER_PREFIX}-objdump)
+set(CMAKE_RANLIB ${COMPILER_PREFIX}-ranlib)
+set(CMAKE_SIZE ${COMPILER_PREFIX}-size)
 
 # Define the linker
-set(CMAKE_EXE_LINKER arm-none-eabi-gcc)
+set(CMAKE_EXE_LINKER ${COMPILER_PREFIX}-gcc)

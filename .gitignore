@@ -2,7 +2,7 @@ logs/
 build/
 rtos/
 .vscode/
-
+tmp/
 # Ignore generated docs
 *.dox
 *.wikidoc

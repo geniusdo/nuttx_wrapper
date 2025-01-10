@@ -87,8 +87,14 @@ add_nuttx_dir(sched sched y -D__KERNEL__ all)
 add_nuttx_dir(m libs/libm  y -D__KERNEL__ all)
 add_nuttx_dir(xx libs/libxx n "" all)
 add_nuttx_dir(crypto crypto y -D__KERNEL__ all)
-add_nuttx_dir(arch arch/arm/src y -D__KERNEL__ all)
 add_nuttx_dir(c libs/libc n "" all)
 add_nuttx_dir(mm mm n "" mm)
+
+if(CMAKE_SYSTEM_PROCESSOR STREQUAL "arm")
+add_nuttx_dir(arch arch/arm/src y -D__KERNEL__ all)
+elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "risc-v")
+add_nuttx_dir(arch arch/risc-v/src y -D__KERNEL__ all)
+endif()
+
 
 

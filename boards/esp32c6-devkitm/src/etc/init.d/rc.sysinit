@@ -1,0 +1,1 @@
+echo "Hello nuttx start up script rc.sysinit"
