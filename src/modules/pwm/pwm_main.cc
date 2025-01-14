@@ -42,9 +42,9 @@ extern "C"
         for (size_t i = 0; i < 4; i++)
         {
             info.channels[i].channel = i;
-            info.channels[i].duty = duty;
+            info.channels[i].duty = static_cast<uint32_t>(65535.0f * 2.0f / 50.0f);
             printf(" channel: %d duty: %d \n",
-                   i, duty);
+                   i, info.channels[i].duty);
         }
 
         ret = ioctl(fd, PWMIOC_SETCHARACTERISTICS,
@@ -63,7 +63,44 @@ extern "C"
             return 1;
         }
 
-        usleep(5000000); //1s
+        usleep(4000000); // 3s
+
+        // min throttle
+        for (size_t i = 0; i < 4; i++)
+        {
+            info.channels[i].channel = i;
+            info.channels[i].duty = static_cast<uint32_t>(65535.0f * 1.0f / 50.0f);
+            printf(" channel: %d duty: %d \n",
+                   i, info.channels[i].duty);
+        }
+        ret = ioctl(fd, PWMIOC_SETCHARACTERISTICS,
+                    (unsigned long)((uintptr_t)&info));
+        if (ret < 0)
+        {
+            printf("pwm_main: ioctl(PWMIOC_SETCHARACTERISTICS) failed: %d\n",
+                   errno);
+            return 1;
+        }
+        usleep(3000000); // 3s
+
+        // min throttle
+        for (size_t i = 0; i < 4; i++)
+        {
+            info.channels[i].channel = i;
+            info.channels[i].duty = static_cast<uint32_t>(65535.0f * 1.0f / 50.0f);
+            printf(" channel: %d duty: %d \n",
+                   i, info.channels[i].duty);
+        }
+        ret = ioctl(fd, PWMIOC_SETCHARACTERISTICS,
+                    (unsigned long)((uintptr_t)&info));
+        if (ret < 0)
+        {
+            printf("pwm_main: ioctl(PWMIOC_SETCHARACTERISTICS) failed: %d\n",
+                   errno);
+            return 1;
+        }
+        usleep(3000000); // 3s
+
         printf("pwm_main: stopping output\n");
 
         ret = ioctl(fd, PWMIOC_STOP, 0);
