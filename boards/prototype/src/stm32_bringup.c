@@ -195,6 +195,16 @@ int stm32_bringup(void) {
     }
 #endif
 
+#ifdef CONFIG_TIMER
+  /* Initialize TIMER and register the TIMER device. */
+
+  ret = stm32_timer_driver_setup("/dev/timer0", TIMER_TIM);
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "ERROR: stm32_timer_driver_setup() failed: %d\n", ret);
+    }
+#endif
+
 
   return OK;
 }
